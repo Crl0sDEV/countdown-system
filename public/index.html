@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown to Ber Months</title>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            flex-direction: column;
+            text-align: center;
+            overflow: hidden; /* Prevents scrollbars from appearing */
+        }
+        #countdown {
+            font-size: 3rem;
+            z-index: 10;
+            color: yellowgreen;
+        }
+        h1 {
+            font-size: 2rem;
+            color: red;
+        }
+        #commentSection {
+            margin-top: 20px;
+        }
+        #visitorInfo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.9rem;
+            z-index: 10;
+        }
+        .floating-comment {
+            position: absolute;
+            font-size: 1.5rem;
+            animation: float 15s ease-in-out forwards, bounce 15s infinite linear;
+        }
+        @keyframes float {
+            0% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-100px); /* Adjust the bounce height as needed */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="visitorInfo"></div>
+
+    <h1>Countdown to Ber Months!</h1>
+    <div id="countdown"></div>
+
+    <div id="commentSection">
+        <input type="text" id="commentInput" placeholder="Leave a comment...">
+        <button onclick="sendComment()">Send</button>
+    </div>
+
+    <div id="comments"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();
+
+        // Countdown Logic
+        var countDownDate = new Date("September 1, 2024 00:00:00").getTime();
+
+        var x = setInterval(function() {
+            var now = new Date().getTime();
+            var distance = countDownDate - now;
+
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("countdown").innerHTML = days + "d " + hours + "h "
+            + minutes + "m " + seconds + "s ";
+
+            if (distance < 0) {
+                clearInterval(x);
+                document.getElementById("countdown").innerHTML = "Happy Ber Months!";
+                window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            }
+        }, 1000);
+
+        // Visitor Info
+        socket.on('visitorInfo', function(data) {
+            document.getElementById('visitorInfo').innerText = `Visitors: ${data.count}`;
+        });
+
+        // Comment Handling
+        function sendComment() {
+            var comment = document.getElementById('commentInput').value;
+            if (comment) {
+                socket.emit('newComment', comment);
+                document.getElementById('commentInput').value = '';
+            }
+        }
+
+        socket.on('displayComment', function(comment) {
+            var commentDiv = document.createElement('div');
+            commentDiv.innerText = comment;
+            commentDiv.className = 'floating-comment';
+            document.body.appendChild(commentDiv);
+            
+            // Position the comment randomly on the screen
+            var posX = Math.random() * (window.innerWidth - 200) + 'px';
+            var posY = Math.random() * (window.innerHeight - 200) + 'px';
+            commentDiv.style.left = posX;
+            commentDiv.style.top = posY;
+
+            setTimeout(function() {
+                commentDiv.remove();
+            }, 15000);
+        });
+    </script>
+
+</body>
+</html>
